@@ -53,6 +53,21 @@ def start_playback(songs_list,randomize_songs):
     
     return player
 
+def create_fifo(path):
+    '''
+    Creates the fifo. Deleting the old one
+    if it exist.
+    '''
+
+    try:
+        os.mkfifo(path)
+    except OSError:
+        #Fifo already exists
+        os.unlink(path)
+        os.mkfifo(path)
+        print "Flushed"
+
+
 def run():
     """
     Grabs songs, begins playback and
@@ -60,12 +75,14 @@ def run():
     Reads from the fifo until it catches 
     "quit" or "snooze <time>"
     """
+    
+
     songs = get_songs(music)
     player = start_playback(songs,randomize)
     
-    os.mkfifo(fifo_path)
+    create_fifo(fifo_path)
     fifo = open(fifo_path)
-    
+
     while True:
         #Reads command from fifo, strips trailing 
         #newline and splits to list.
