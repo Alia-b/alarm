@@ -6,28 +6,9 @@ from mplayer import Player, CmdPrefix
 
 path_to_script = "/home/bielobog/code/python/alarm/alarm.py"
 
-#Top level parser
-parser = argparse.ArgumentParser(description="Set and manage an alarm")
-subparsers = parser.add_subparser()
-
-#Time parser
-time_parser = subparsers.add_parser("set",help = "Set the alarm")
-time_parser.add_argument('time',help="The time to play the alarm")
-
-#Play parser
-play_parser = subparser.add_parser("play",help="Play alarm")
-
-#Stop parser
-stop_parser = subparser.add_parser("stop",help="Stop the alarm")
-
-args = parser.parse_args()
-
 
 def set_alarm(script_path,time):
-    os.system("echo \" "+script_path+" \" |  at "+time)
-
-if args.time:
-    set_alarm(path_to_script,args.time)
+    os.system("echo \" "+script_path+" play"+"\" |  at "+time)
 
 def snooze(time,player):
     player.pause()
@@ -63,3 +44,22 @@ def quit(player):
     player.quit()
 
 
+#Top level parser
+parser = argparse.ArgumentParser(description="Set and manage an alarm")
+subparsers = parser.add_subparsers()
+
+#Time parser
+time_parser = subparsers.add_parser("set",help = "Set the alarm")
+time_parser.add_argument('time',help="The time to play the alarm")
+time_parser.add_argument('path',default="/home/bielobog/code/python/alarm/alar.py")
+time_parser.set_defaults(func=set_alarm)
+
+#Play parser
+play_parser = subparsers.add_parser("play",help="Play alarm")
+
+#Stop parser
+stop_parser = subparsers.add_parser("stop",help="Stop the alarm")
+
+args = parser.parse_args()
+print args
+args.func(args.path,args.time)
