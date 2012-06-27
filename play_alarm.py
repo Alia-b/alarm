@@ -6,13 +6,14 @@ from random import randint
 from time import sleep
 
 
+conf_loc = os.path.expanduser("~/.config/alarm/alarm.conf")
 conf = ConfigParser.SafeConfigParser()
-conf.read('alarm.conf')
+conf.read(conf_loc)
 
 music = conf.get('player','music_dir')
 randomize = conf.getboolean('player','randomize')
-controller = conf.get('player','fifo')
-fifo_path = conf.get('player','fifo')
+working_dir = conf.get('player','working_dir')
+
 
 def snooze(player,time=900):
     '''
@@ -58,15 +59,11 @@ def create_fifo(path):
     Creates the fifo. Deleting the old one
     if it exist.
     '''
-
-    try:
-        os.mkfifo(path)
-    except OSError:
-        #Fifo already exists
-        os.unlink(path)
-        os.mkfifo(path)
-        print "Flushed"
-
+    fifo_path = os.path.join(path,"command.fifo")
+    if os.path.exists(fifo_path):
+        os.unlink(fifo_path)
+    os.mkfifo(fifo_path)
+    return fifo_path
 
 def run():
     """
@@ -80,8 +77,8 @@ def run():
     songs = get_songs(music)
     player = start_playback(songs,randomize)
     
-    create_fifo(fifo_path)
-    fifo = open(fifo_path)
+    fifo_loc =  create_fifo(working_dir)
+    fifo = open(fifo_loc)
 
     while True:
         #Reads command from fifo, strips trailing 
