@@ -44,7 +44,7 @@ def start_playback(songs_list,randomize_songs):
     """
 
     Player.cmd_prefix = CmdPrefix.PAUSING_KEEP
-    player = Player()
+    player = Player('-loop -1')
     
     if randomize_songs:
         rand_song= randint(0,len(songs_list)-1)
