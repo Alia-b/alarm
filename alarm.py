@@ -18,10 +18,8 @@ def set_alarm(args):
     
     #echo "/home/user/scripts/play_alarm.py" | at 7:00AM
     command ="echo \" "+os.path.join(working_dir,"play_alarm.py")+"\" |  at "+args.time
-    #at -f /home/user/scripts/play_alarm.py 7:00AM
-    #command = "at -f "+os.path.join(working_dir,"play_alarm.py")+" "+args.time
     os.system(command)
-    print command
+
 
 def stop_alarm(args):
     """
@@ -32,8 +30,14 @@ def stop_alarm(args):
     fifo.close()
 
 def snooze_alarm(args):
+    """
+    Pauses the alarm for given minutes then resumes playback.
+    """
     fifo = open(os.path.join(working_dir,"command.fifo"),'w')
     fifo.write("snooze "+args.minutes)
+
+def play_alarm(args):
+    os.system(os.path.join(working_dir,"play_alarm.py"))
 
 #Top level parser
 parser = argparse.ArgumentParser(description="Set and manage an alarm")
@@ -46,6 +50,7 @@ time_parser.set_defaults(func=set_alarm)
 
 #Play parser
 play_parser = subparsers.add_parser("play",help="Play alarm")
+play_parser.set_defaults(func=play_alarm)
 
 #Stop parser
 stop_parser = subparsers.add_parser("stop",help="Stop alarm playback")
