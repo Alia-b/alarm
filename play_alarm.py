@@ -15,14 +15,14 @@ randomize = conf.getboolean('player','randomize')
 working_dir = conf.get('player','working_dir')
 
 
-def snooze(player,time=900):
+def snooze(player,minutes=15):
     '''
-    Pauses playback for time
-    in seconds.
-    Time deafult to 900 (15 minutes)
+    Pauses playback for minutes.
+    Defaults to 15 minutes.
     '''
     player.pause()
-    sleep(time)
+    #Convert minutes to seconds for sleep()
+    sleep(minutes*60)
     player.pause()
 
 def get_songs(music_dir):
@@ -85,7 +85,7 @@ def run():
         #newline and splits to list.
         command = fifo.read().strip().split(" ")
         if command[0] == "quit":
-            quit(player)
+            quit(player,fifo_loc)
             break
         elif command[0] == "snooze":
             try:
@@ -96,7 +96,7 @@ def run():
 
     return player
 
-def quit(player):
+def quit(player,fifo_path):
     os.unlink(fifo_path)
     player.quit()
 

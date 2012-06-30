@@ -1,48 +1,39 @@
 #!/usr/bin/python2.7
 
-import os,argparse 
+import os,argparse,ConfigParser 
 from mplayer import Player, CmdPrefix
 
+conf_loc = os.path.expanduser("~/.config/alarm/alarm.conf")
+conf = ConfigParser.SafeConfigParser()
+conf.read(conf_loc)
 
-path_to_script = "/home/bielobog/code/python/alarm/alarm.py"
+working_dir = conf.get('player','working_dir')
 
-
-def set_alarm(script_path,time):
-    os.system("echo \" "+script_path+" play"+"\" |  at "+time)
-
-def snooze(time,player):
-    player.pause()
-    wait(time)
-    player.play()
-
-music = '/home/bielobog/Music/Singles'
-
-def get_songs(music_dir):
+def set_alarm(args):
     """
-    Returns a list of all songs in 
-    music_dir and subdirectories.
-    Songs are in absolute path format
+    Calls atd to run play_alarm at the time specified by set.
+    You should read the manual for at, but "7:00AM" is pretty 
+    self-explanatory.
     """
-    songs = []
-    for entry in os.walk(music_dir):
-        for song in entry[2]:
-            songs.append(os.path.join(entry[0],song))
-    return songs
+    
+    #echo "/home/user/scripts/play_alarm.py" | at 7:00AM
+    command ="echo \" "+os.path.join(working_dir,"play_alarm.py")+"\" |  at "+args.time
+    #at -f /home/user/scripts/play_alarm.py 7:00AM
+    #command = "at -f "+os.path.join(working_dir,"play_alarm.py")+" "+args.time
+    os.system(command)
+    print command
 
-def start_playback(songs,random=True):
-    Player.cmd_prefix = CmdPrefix.PAUSING_KEEP
-    player = Player()
-    player.loadfile(song[0])
+def stop_alarm(args):
+    """
+    Sends a "quit" command to the alarm.
+    """
+    fifo = open(os.path.join(working_dir,"command.fifo"),'w')
+    fifo.write("quit")
+    fifo.close()
 
-    return player
-
-def run():
-    songs = get_songs(music)
-    player = start_playback(songs)
-
-def quit(player):
-    player.quit()
-
+def snooze_alarm(args):
+    fifo = open(os.path.join(working_dir,"command.fifo"),'w')
+    fifo.write("snooze "+args.minutes)
 
 #Top level parser
 parser = argparse.ArgumentParser(description="Set and manage an alarm")
@@ -51,15 +42,19 @@ subparsers = parser.add_subparsers()
 #Time parser
 time_parser = subparsers.add_parser("set",help = "Set the alarm")
 time_parser.add_argument('time',help="The time to play the alarm")
-time_parser.add_argument('path',default="/home/bielobog/code/python/alarm/alar.py")
 time_parser.set_defaults(func=set_alarm)
 
 #Play parser
 play_parser = subparsers.add_parser("play",help="Play alarm")
 
 #Stop parser
-stop_parser = subparsers.add_parser("stop",help="Stop the alarm")
+stop_parser = subparsers.add_parser("stop",help="Stop alarm playback")
+stop_parser.set_defaults(func=stop_alarm)
+
+#Snooze parser
+snooze_parser = subparsers.add_parser("snooze",help="Snooze the alarm")
+snooze_parser.add_argument('minutes',help="Minutes to snooze.")
+snooze_parser.set_defaults(func=snooze_alarm)
 
 args = parser.parse_args()
-print args
-args.func(args.path,args.time)
+args.func(args)
